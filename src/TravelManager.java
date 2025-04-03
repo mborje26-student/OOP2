@@ -80,7 +80,6 @@ public class TravelManager {
             System.out.println("Processing Travel: " + travel.title());
         };
 
-        // Create a list of Callable tasks that apply the Consumer to each Travel
         List<Callable<Void>> callables = travels.stream()
                 .map(travel -> (Callable<Void>) () -> {
                     travelConsumer.accept(travel);
