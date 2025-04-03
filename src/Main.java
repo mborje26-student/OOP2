@@ -1,4 +1,3 @@
-import javax.swing.*;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Locale;
@@ -16,7 +15,7 @@ public class Main {
 
 
         // Localization
-        TravelManager.printWelcomeMessage(Locale.ITALIAN); //Show ITALIAN in DEMO will display welcome message in Italian
+        TravelManager.printWelcomeMessage(Locale.ENGLISH);
 
 
         // Create travels
@@ -72,21 +71,28 @@ public class Main {
         try {
             travelManager.saveTravels(List.of(travel1, travel2, travel3, travel4, travel5, travel6, travel7, travel8, travel9, travel10));
             List<String> loadedTravels = travelManager.loadTravels();
-            System.out.println("Loaded Travels: " + loadedTravels);
+            System.out.println("\nLoaded Travels:");
+            loadedTravels.forEach(travel -> {
+                String[] travelDetails = travel.split(",");
+                System.out.println("ID: " + travelDetails[0] + ", Title: " + travelDetails[1] + ", Description: " + travelDetails[2] +
+                        ", Category: " + travelDetails[3] + ", Due Date: " + travelDetails[4] + ", Status: " + travelDetails[5]);
+            });
         } catch (Exception e) {
             e.printStackTrace();
         }
 
         // Show Travels sorted by due Date
         List<Travel> sortedTravels = travelManager.getSortedTravel();
-        System.out.println("Travels sorted by due date:");
+        System.out.println("\nTravels sorted by due date:");
         sortedTravels.forEach(travel ->
-                System.out.println(travel.id() + ": " + travel.title() + " - Due: " + travel.dueDate()));
+                System.out.println("ID: " + travel.id() + ", Date of Travel: " + travel.dueDate() + ", Itinerary: " + travel.title()));
+
+
 
 
         // Show Travels with PENDING status
         List<Travel> pendingTravels = travelManager.filterTravel(t -> t.status() == TravelStatus.PENDING);
-        System.out.println("Pending Travels: " + pendingTravels);
+        System.out.println("\nPending Travels: " + pendingTravels);
 
 
         // Show defafult travel group if no matching
@@ -97,18 +103,25 @@ public class Main {
         System.out.println("Default Travel: " + defaultTravel);
 
 
-        // **Consumer Example** - Print all travels
+        // Consumer Example - Print all travels
         Consumer<Travel> travelConsumer = travel -> System.out.println("Travel ID: " + travel.id() + ", Title: " + travel.title());
         System.out.println("\nPrinting all travels using Consumer:");
         travelManager.getTravels().forEach(travelConsumer);
 
-        // **Function Example** - Extract titles from all travels and print them
+        // Function Example - Extract titles from all travels and print them
         Function<Travel, String> travelTitleExtractor = travel -> travel.title();
-        System.out.println("\nMapping travels to their titles using Function:");
+        System.out.println("\nMapping travels to their titles:");
         List<String> travelTitles = travelManager.getTravels().stream()
                 .map(travelTitleExtractor)
                 .collect(Collectors.toList());
-        System.out.println("Travel Titles: " + travelTitles);
+        travelTitles.forEach(title -> System.out.println("Travel Title: " + title));
+
+
+        TravelManager.printExitMessage(Locale.ENGLISH);
 
     }
+
+
+
+
 }

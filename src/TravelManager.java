@@ -7,6 +7,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -18,20 +19,15 @@ public class TravelManager {
 
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
-
     // Add Travel plan
     public void addTravel(Travel travel) {
         travels.add(travel);
     }
 
-
-
-
     // Use of Supplier to create default travel plan
     public Travel getDefaultTravel(Supplier<Travel> supplier) {
         return supplier.get();
     }
-
 
     // Filter travels using Predicate (Lambda)
     public List<Travel> filterTravel(Predicate<Travel> condition) {
@@ -47,7 +43,7 @@ public class TravelManager {
 
     // Streams Terminal Operations
     public void streamOperations() {
-        System.out.println("Min by ID: " + travels.stream().min(Comparator.comparing(Travel::id)).orElse(null));
+        System.out.println("\nMin by ID: " + travels.stream().min(Comparator.comparing(Travel::id)).orElse(null));
         System.out.println("Max by ID: " + travels.stream().max(Comparator.comparing(Travel::id)).orElse(null));
         System.out.println("Total count of travels: " + travels.stream().count());
         System.out.println("Find any: " + travels.stream().findAny().orElse(null));
@@ -65,20 +61,37 @@ public class TravelManager {
         Map<Integer, String> idToTitleMap = travels.stream()
                 .collect(Collectors.toMap(Travel::id, Travel::title));
 
-        System.out.println("Grouped by Status: " + groupedByStatus);
-        System.out.println("ID to Title Map: " + idToTitleMap);
+        System.out.println("\nGrouped by Status:");
+        groupedByStatus.forEach((status, travelList) -> {
+            System.out.println(status + ":");
+            travelList.forEach(travel -> System.out.println("  " + travel.id() + ": " + travel.title()));
+        });
+
+        System.out.println("\nID to Title:");
+        idToTitleMap.forEach((id, title) ->
+                System.out.println("ID: " + id + ", Title: " + title)
+        );
     }
 
     //concurrency to travel processor
     public void processTravels(List<Travel> travels) {
-        List<Callable<String>> callables = travels.stream()
-                .map(travel -> (Callable<String>) () -> "Processing Travel: " + travel.title())
+
+        Consumer<Travel> travelConsumer = travel -> {
+            System.out.println("Processing Travel: " + travel.title());
+        };
+
+        // Create a list of Callable tasks that apply the Consumer to each Travel
+        List<Callable<Void>> callables = travels.stream()
+                .map(travel -> (Callable<Void>) () -> {
+                    travelConsumer.accept(travel);
+                    return null;
+                })
                 .toList();
 
         try {
-            List<Future<String>> results = executor.invokeAll(callables);
-            for (Future<String> result : results) {
-                System.out.println(result.get());
+            List<Future<Void>> results = executor.invokeAll(callables);
+            for (Future<Void> result : results) {
+                result.get();
             }
         } catch (InterruptedException | ExecutionException e) {
             e.printStackTrace();
@@ -87,7 +100,7 @@ public class TravelManager {
         }
     }
 
-    // Write travelss to file
+    // Write travels to file
     public static void saveTravels(List<Travel> travels) throws IOException {
         List<String> lines = travels.stream()
                 .map(travel -> travel.id() + ","
@@ -101,7 +114,6 @@ public class TravelManager {
     }
 
 
-
     // Read travels from file
     public static List<String> loadTravels() throws IOException {
         return Files.readAllLines(FILE_PATH);
@@ -113,6 +125,7 @@ public class TravelManager {
         ResourceBundle bundle = ResourceBundle.getBundle("messages", locale);
         System.out.println(bundle.getString("travel.welcome"));
     }
+
     public static void printExitMessage(Locale locale) {
         ResourceBundle bundle = ResourceBundle.getBundle("messages", locale);
         System.out.println(bundle.getString("travel.end"));
