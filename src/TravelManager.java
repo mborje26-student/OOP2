@@ -34,6 +34,9 @@ public class TravelManager {
         return travels.stream().filter(condition).collect(Collectors.toList());
     }
 
+
+
+
     // Sort travels using Comparator.comparing()
     public List<Travel> getSortedTravel() {
         return travels.stream()
